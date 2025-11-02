@@ -287,7 +287,17 @@ cp config.json.example config.json
 
 # 编辑并填入你的API密钥
 nano config.json  # 或使用其他编辑器
+
+# 🔒 安全设置（推荐）：设置安全权限并验证配置
+chmod +x secure-config.sh
+./secure-config.sh
 ```
+
+**💡 配置文件安全说明：**
+- ✅ `config.json` 已在 `.gitignore` 中，不会被提交到Git
+- ✅ Docker挂载使用只读模式（`:ro`），容器无法修改配置
+- ✅ 配置文件在Docker外部，便于管理和备份
+- 📖 详细安全指南请查看 [CONFIG_SECURITY_GUIDE.md](CONFIG_SECURITY_GUIDE.md)
 
 #### 步骤2：一键启动
 ```bash

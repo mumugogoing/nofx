@@ -9,7 +9,10 @@ git clone https://github.com/mumugogoing/nofx.git && cd nofx
 # 2. 配置API
 cp config.json.example config.json && nano config.json
 
-# 3. 部署到服务器
+# 3. 🔒 安全设置（推荐）
+./secure-config.sh
+
+# 4. 部署到服务器
 ./deploy.sh YOUR_SERVER_IP root
 ```
 
@@ -57,8 +60,38 @@ ssh root@SERVER_IP 'cd /opt/nofx && git pull && docker compose up -d --build'
 | [DEPLOYMENT_TUTORIAL.md](DEPLOYMENT_TUTORIAL.md) | 完整部署教程 |
 | [REMOTE_DEPLOY.md](REMOTE_DEPLOY.md) | 远程部署详解 |
 | [DOCKER_DEPLOY.md](DOCKER_DEPLOY.md) | Docker本地部署 |
+| [CONFIG_SECURITY_GUIDE.md](CONFIG_SECURITY_GUIDE.md) | **配置文件安全指南** |
 | [SECURITY_NOTICE.md](SECURITY_NOTICE.md) | 安全注意事项 |
 | [阿里云部署指南.md](阿里云部署指南.md) | 阿里云专用 |
+| [REMOTE_DEPLOY.md](REMOTE_DEPLOY.md) | 远程部署详解 |
+| [DOCKER_DEPLOY.md](DOCKER_DEPLOY.md) | Docker本地部署 |
+| [SECURITY_NOTICE.md](SECURITY_NOTICE.md) | 安全注意事项 |
+| [阿里云部署指南.md](阿里云部署指南.md) | 阿里云专用 |
+
+## 🔒 配置文件安全
+
+```bash
+# 运行安全设置脚本（自动检查和修复）
+./secure-config.sh
+
+# 手动设置权限
+chmod 600 config.json
+
+# 验证配置文件不在Git中
+git status config.json  # 应显示在.gitignore中
+
+# 创建加密备份
+tar -czf config-backup.tar.gz config.json
+chmod 600 config-backup.tar.gz
+```
+
+**配置文件安全特性：**
+- ✅ 文件在Docker外部（通过卷挂载）
+- ✅ Docker使用只读模式（`:ro`）
+- ✅ 已在`.gitignore`中（不会提交到Git）
+- ✅ 推荐权限：600（仅所有者读写）
+
+详见：[CONFIG_SECURITY_GUIDE.md](CONFIG_SECURITY_GUIDE.md)
 
 ## 故障排查
 

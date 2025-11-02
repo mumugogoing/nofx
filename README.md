@@ -287,7 +287,17 @@ cp config.json.example config.json
 
 # Edit and fill in your API keys
 nano config.json  # or use any editor
+
+# 🔒 Security Setup (Recommended): Set secure permissions and validate config
+chmod +x secure-config.sh
+./secure-config.sh
 ```
+
+**💡 Config File Security:**
+- ✅ `config.json` is in `.gitignore`, never committed to Git
+- ✅ Docker mount uses read-only mode (`:ro`), container cannot modify config
+- ✅ Config file stays outside Docker, easy to manage and backup
+- 📖 For detailed security guide, see [CONFIG_SECURITY_GUIDE.md](CONFIG_SECURITY_GUIDE.md)
 
 #### Step 2: One-Click Start
 ```bash
