@@ -320,6 +320,53 @@ docker compose up -d --build
 
 ---
 
+### 🌐 方式A+：远程服务器部署（部署到云服务器）
+
+**⚡ 几分钟内部署到远程服务器（阿里云、腾讯云、AWS等）！**
+
+完美适合部署到生产环境服务器，自动化安装配置。
+
+#### 快速部署
+```bash
+# 1. 准备配置文件
+cp config.json.example config.json
+nano config.json  # 填入你的API密钥
+
+# 2. 一键部署到远程服务器
+./deploy.sh 你的服务器IP root
+
+# 示例：
+./deploy.sh 47.108.148.251 root
+```
+
+脚本会自动完成：
+- ✅ 在远程服务器安装Docker（如需要）
+- ✅ 同步项目文件
+- ✅ 构建并启动容器
+- ✅ 配置服务
+
+#### 访问你的部署
+- **Web界面**: http://你的服务器IP:3000
+- **API服务**: http://你的服务器IP:8080
+
+**🔒 安全提示**: 使用SSH密钥认证而不是密码！
+
+```bash
+# 配置SSH密钥（一次性）
+ssh-keygen -t rsa -b 4096
+ssh-copy-id root@你的服务器IP
+
+# 之后可以无密码部署
+./deploy.sh 你的服务器IP root
+```
+
+**📖 完整的远程部署指南和安全最佳实践：**
+- **快速开始**: 查看 [DEPLOY_QUICK_START.md](DEPLOY_QUICK_START.md)
+- **完整指南**: 查看 [REMOTE_DEPLOY.md](REMOTE_DEPLOY.md)
+- **阿里云专用**: 查看 [阿里云部署指南.md](阿里云部署指南.md)
+
+---
+
 ### 📦 方式B：手动安装（开发者）
 
 **注意**：如果你使用了上面的Docker部署，请跳过本节。手动安装仅在你需要修改代码或不想使用Docker时需要。

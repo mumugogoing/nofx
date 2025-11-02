@@ -324,6 +324,53 @@ Open your browser and visit: **http://localhost:3000**
 
 ---
 
+### 🌐 Option A+: Remote Server Deployment (Deploy to Cloud)
+
+**⚡ Deploy to your remote server (Aliyun, AWS, DigitalOcean, etc.) in minutes!**
+
+Perfect for deploying to production servers with automated setup.
+
+#### Quick Deployment
+```bash
+# 1. Prepare configuration
+cp config.json.example config.json
+nano config.json  # Fill in your API keys
+
+# 2. Deploy to remote server (one command!)
+./deploy.sh YOUR_SERVER_IP root
+
+# Example:
+./deploy.sh 47.108.148.251 root
+```
+
+The script will automatically:
+- ✅ Install Docker on the remote server (if needed)
+- ✅ Sync project files
+- ✅ Build and start containers
+- ✅ Configure services
+
+#### Access Your Deployment
+- **Web Interface**: http://YOUR_SERVER_IP:3000
+- **API Server**: http://YOUR_SERVER_IP:8080
+
+**🔒 Security Tip**: Use SSH key authentication instead of passwords!
+
+```bash
+# Setup SSH key (one-time)
+ssh-keygen -t rsa -b 4096
+ssh-copy-id root@YOUR_SERVER_IP
+
+# Now deploy without password
+./deploy.sh YOUR_SERVER_IP root
+```
+
+**📖 For complete remote deployment guide with security best practices:**
+- **Quick Start**: See [DEPLOY_QUICK_START.md](DEPLOY_QUICK_START.md)
+- **Full Guide**: See [REMOTE_DEPLOY.md](REMOTE_DEPLOY.md)
+- **中文**: 查看 [阿里云部署指南.md](阿里云部署指南.md)
+
+---
+
 ### 📦 Option B: Manual Installation (For Developers)
 
 **Note**: If you used Docker deployment above, skip this section. Manual installation is only needed if you want to modify the code or run without Docker.
