@@ -19,6 +19,12 @@ if [ ! -f "deploy-remote.sh" ]; then
     exit 1
 fi
 
+# 确保deploy-remote.sh可执行
+if [ ! -x "deploy-remote.sh" ]; then
+    echo "设置 deploy-remote.sh 为可执行..."
+    chmod +x deploy-remote.sh
+fi
+
 # 如果提供了命令行参数，直接传递
 if [ $# -ge 1 ]; then
     ./deploy-remote.sh "$@"

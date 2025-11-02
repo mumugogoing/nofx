@@ -102,27 +102,43 @@ if [ ! -f "config.json" ]; then
         print_error "Neither config.json nor config.json.example found"
         exit 1
     fi
-    print_warning "config.json not found. Please create it from config.json.example"
-    print_info "Creating config.json from config.json.example..."
+    print_warning "config.json not found. Creating from config.json.example..."
     cp config.json.example config.json
-    print_warning "Please edit config.json with your API keys before deploying"
-    read -p "Press Enter to continue after editing config.json, or Ctrl+C to cancel..."
+    print_error "Please edit config.json with your real API keys before deploying!"
+    print_info "Example configuration has placeholder values that will NOT work."
+    echo ""
+    echo "Required fields to configure:"
+    echo "  - binance_api_key"
+    echo "  - binance_secret_key"
+    echo "  - deepseek_key (or qwen_key)"
+    echo ""
+    read -p "Press Enter after editing config.json to continue, or Ctrl+C to cancel..."
+fi
+
+# Validate config.json contains actual API keys (not placeholders)
+if grep -q "YOUR_BINANCE_API_KEY\|YOUR_DEEPSEEK_API_KEY\|YOUR_QWEN_API_KEY" config.json 2>/dev/null; then
+    print_error "config.json contains placeholder API keys!"
+    print_warning "Please edit config.json and replace all placeholder values with your actual API keys."
+    exit 1
 fi
 
 print_success "Local files validated"
 
 # Test SSH connection
 print_info "Testing SSH connection to ${SSH_USER}@${SERVER_IP}:${SSH_PORT}..."
-if ssh -p ${SSH_PORT} -o ConnectTimeout=10 -o BatchMode=yes ${SSH_USER}@${SERVER_IP} "echo 'SSH connection successful'" 2>/dev/null; then
+SSH_OPTS="-p ${SSH_PORT} -o ConnectTimeout=10"
+if ssh ${SSH_OPTS} -o BatchMode=yes ${SSH_USER}@${SERVER_IP} "echo 'SSH connection successful'" 2>/dev/null; then
     print_success "SSH connection successful (using SSH key)"
+    SSH_AUTH_METHOD="key"
 else
     print_warning "SSH key authentication failed, will use password authentication"
     print_info "You will be prompted for password during deployment"
+    SSH_AUTH_METHOD="password"
 fi
 
 # Check if Docker is installed on remote server
 print_info "Checking Docker installation on remote server..."
-if ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} "command -v docker &> /dev/null"; then
+if ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} "command -v docker &> /dev/null"; then
     print_success "Docker is installed on remote server"
 else
     print_warning "Docker not found on remote server"
@@ -130,9 +146,10 @@ else
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_info "Installing Docker on remote server..."
-        ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} << 'ENDSSH'
+        print_warning "Note: Installing Docker from official script. Verify script integrity if security is critical."
+        ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} << 'ENDSSH'
             set -e
-            # Install Docker
+            # Install Docker using official script
             curl -fsSL https://get.docker.com -o get-docker.sh
             sh get-docker.sh
             
@@ -154,7 +171,7 @@ fi
 
 # Check Docker Compose
 print_info "Checking Docker Compose on remote server..."
-if ! ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} "docker compose version &> /dev/null"; then
+if ! ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} "docker compose version &> /dev/null"; then
     print_error "Docker Compose not available on remote server"
     print_info "Please ensure Docker version 20.10+ is installed (includes compose)"
     exit 1
@@ -163,13 +180,13 @@ print_success "Docker Compose is available"
 
 # Create remote directory
 print_info "Creating remote directory ${REMOTE_DIR}..."
-ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} "mkdir -p ${REMOTE_DIR}"
+ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} "mkdir -p ${REMOTE_DIR}"
 print_success "Remote directory created"
 
 # Sync project files to remote server
 print_info "Syncing project files to remote server..."
 rsync -avz --progress \
-    -e "ssh -p ${SSH_PORT}" \
+    -e "ssh ${SSH_OPTS}" \
     --exclude '.git' \
     --exclude '.github' \
     --exclude 'node_modules' \
@@ -178,13 +195,17 @@ rsync -avz --progress \
     --exclude 'decision_logs' \
     --exclude 'coin_pool_cache' \
     --exclude '.env' \
+    --exclude 'deploy-config.sh' \
+    --exclude '*.pem' \
+    --exclude '*.key' \
+    --exclude 'id_rsa*' \
     ./ ${SSH_USER}@${SERVER_IP}:${REMOTE_DIR}/
 
 print_success "Project files synced"
 
 # Deploy with Docker Compose
 print_info "Deploying with Docker Compose on remote server..."
-ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} << ENDSSH
+ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} << ENDSSH
     set -e
     cd ${REMOTE_DIR}
     
@@ -217,11 +238,11 @@ echo "  🔧 API Server: http://${SERVER_IP}:8080"
 echo "  💚 Health Check: http://${SERVER_IP}:8080/health"
 echo ""
 echo "Useful commands:"
-echo "  📊 View logs: ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose logs -f'"
-echo "  🔄 Restart: ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose restart'"
-echo "  🛑 Stop: ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose down'"
-echo "  📈 Status: ssh -p ${SSH_PORT} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose ps'"
+echo "  📊 View logs: ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose logs -f'"
+echo "  🔄 Restart: ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose restart'"
+echo "  🛑 Stop: ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose down'"
+echo "  📈 Status: ssh ${SSH_OPTS} ${SSH_USER}@${SERVER_IP} 'cd ${REMOTE_DIR} && docker compose ps'"
 echo ""
 print_warning "Important: Make sure to configure your firewall to allow ports 3000 and 8080"
-print_warning "Remember to update config.json with your actual API keys on the remote server"
+print_warning "Remember: config.json on the remote server contains your API keys - keep it secure!"
 echo ""
