@@ -287,7 +287,17 @@ cp config.json.example config.json
 
 # 编辑并填入你的API密钥
 nano config.json  # 或使用其他编辑器
+
+# 🔒 安全设置（推荐）：设置安全权限并验证配置
+chmod +x secure-config.sh
+./secure-config.sh
 ```
+
+**💡 配置文件安全说明：**
+- ✅ `config.json` 已在 `.gitignore` 中，不会被提交到Git
+- ✅ Docker挂载使用只读模式（`:ro`），容器无法修改配置
+- ✅ 配置文件在Docker外部，便于管理和备份
+- 📖 详细安全指南请查看 [CONFIG_SECURITY_GUIDE.md](CONFIG_SECURITY_GUIDE.md)
 
 #### 步骤2：一键启动
 ```bash
@@ -317,6 +327,53 @@ docker compose up -d --build
 **📖 详细的Docker部署教程、故障排查和高级配置：**
 - **中文**: 查看 [DOCKER_DEPLOY.md](DOCKER_DEPLOY.md)
 - **English**: See [DOCKER_DEPLOY.en.md](DOCKER_DEPLOY.en.md)
+
+---
+
+### 🌐 方式A+：远程服务器部署（部署到云服务器）
+
+**⚡ 几分钟内部署到远程服务器（阿里云、腾讯云、AWS等）！**
+
+完美适合部署到生产环境服务器，自动化安装配置。
+
+#### 快速部署
+```bash
+# 1. 准备配置文件
+cp config.json.example config.json
+nano config.json  # 填入你的API密钥
+
+# 2. 一键部署到远程服务器
+./deploy.sh 你的服务器IP root
+
+# 示例：
+./deploy.sh 47.108.148.251 root
+```
+
+脚本会自动完成：
+- ✅ 在远程服务器安装Docker（如需要）
+- ✅ 同步项目文件
+- ✅ 构建并启动容器
+- ✅ 配置服务
+
+#### 访问你的部署
+- **Web界面**: http://你的服务器IP:3000
+- **API服务**: http://你的服务器IP:8080
+
+**🔒 安全提示**: 使用SSH密钥认证而不是密码！
+
+```bash
+# 配置SSH密钥（一次性）
+ssh-keygen -t rsa -b 4096
+ssh-copy-id root@你的服务器IP
+
+# 之后可以无密码部署
+./deploy.sh 你的服务器IP root
+```
+
+**📖 完整的远程部署指南和安全最佳实践：**
+- **快速开始**: 查看 [DEPLOY_QUICK_START.md](DEPLOY_QUICK_START.md)
+- **完整指南**: 查看 [REMOTE_DEPLOY.md](REMOTE_DEPLOY.md)
+- **阿里云专用**: 查看 [阿里云部署指南.md](阿里云部署指南.md)
 
 ---
 
